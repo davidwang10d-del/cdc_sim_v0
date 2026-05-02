@@ -1,0 +1,62 @@
+{
+  "inf": {
+    "name": "Motorized Infantry Battalion",
+    "speed": 15.0,
+    "soft": 45.0,
+    "hard": 10.0,
+    "ap": 300.0,
+    "armor": 15.0,
+    "defense": 60.0,
+    "breakthrough": 15.0,
+    "org": 60.0,
+    "terrain": 0.8
+  },
+  "arm": {
+    "name": "Armored Battalion",
+    "speed": 25.0,
+    "soft": 35.0,
+    "hard": 60.0,
+    "ap": 400.0,
+    "armor": 200.0,
+    "defense": 20.0,
+    "breakthrough": 80.0,
+    "org": 20.0,
+    "terrain": 0.3
+  },
+  "art": {
+    "name": "Artillery Battery",
+    "speed": 10.0,
+    "soft": 120.0,
+    "hard": 15.0,
+    "ap": 50.0,
+    "armor": 5.0,
+    "defense": 10.0,
+    "breakthrough": 5.0,
+    "org": 0.0,
+    "terrain": 0.4
+  },
+  "sf": {
+    "name": "Special Recon Battalion",
+    "speed": 6.0,
+    "soft": 25.0,
+    "hard": 15.0,
+    "ap": 150.0,
+    "armor": 0.0,
+    "defense": 30.0,
+    "breakthrough": 25.0,
+    "org": 80.0,
+    "terrain": 2.0
+  },
+  "eng": {
+    "name": "Combat Engineer Battalion",
+    "speed": 12.0,
+    "soft": 15.0,
+    "hard": 5.0,
+    "ap": 50.0,
+    "armor": 10.0,
+    "defense": 40.0,
+    "breakthrough": 20.0,
+    "org": 40.0,
+    "terrain": 1.5
+  }
+}

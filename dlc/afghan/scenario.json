@@ -1,0 +1,30 @@
+{
+  "scenario_name": "Operation Magnum: Afghan",
+  "description": "The Soviet 40th Army conducts widespread sweeps against Mujahideen strongholds in the Hindu Kush, while foreign intelligence agencies funnel Stingers and logistics through ratlines.",
+  "map_config": {
+    "bounds": { "min_lon": 60.0, "max_lon": 75.0, "min_lat": 29.0, "max_lat": 39.0 },
+    "grid_resolution": [200, 200],
+    
+    "dem_dir": "maps/dem_tiles", 
+    "dem_file": "", 
+    
+    "roads_file": "maps/afghanistan_1986_final_bridged.tif",
+    "rivers_file": "",
+    "provinces_file": "maps/afghan_provinces.geojson"
+  },
+  "initial_units_file": "units.json",
+  "diplomacy_blocs": [
+    {
+      "bloc_name": "Warsaw Pact & DRA",
+      "members": ["USSR", "DRA"]
+    },
+    {
+      "bloc_name": "Mujahideen & Western Backers",
+      "members": ["Mujahideen", "Foreign Fighters", "USA", "Pakistan", "UK", "Saudi Arabia", "PRC"]
+    },
+    {
+      "bloc_name": "Independent Proxies",
+      "members": ["Iran"]
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "AK-74": {
+    "name": "Standard Infantry Arms (AK/RPG)",
+    "range": 0.5
+  },
+  "T-62_Gun": {
+    "name": "115mm Smoothbore Tank Gun",
+    "range": 3.0
+  },
+  "Mortar_82mm": {
+    "name": "82mm Mortar Battery",
+    "range": 4.0
+  },
+  "Howitzer_152mm": {
+    "name": "152mm Towed Howitzer",
+    "range": 20.0
+  },
+  "BM-21": {
+    "name": "122mm Multiple Rocket Launcher",
+    "range": 40.0
+  }
+}

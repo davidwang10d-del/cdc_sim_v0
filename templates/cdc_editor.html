@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CDC Scenario Architect | GUI Database Editor</title>
+    <link rel="stylesheet" href="/static/css/style.css" />
+    <style>
+        body { padding: 0; margin: 0; background-color: #050a0f; color: #c9d1d9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; flex-direction: column; height: 100vh; overflow: hidden;}
+        #header { background: #161b22; border-bottom: 1px solid #30363d; padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; z-index: 10; box-shadow: 0 4px 10px rgba(0,0,0,0.5);}
+        #workspace { display: flex; flex-grow: 1; overflow: hidden; }
+        
+        /* FM-style Sidebar */
+        .sidebar { width: 250px; background: #0d1117; border-right: 1px solid #30363d; display: flex; flex-direction: column; overflow-y: auto;}
+        .sidebar-category { color: #8b949e; font-size: 11px; font-weight: bold; text-transform: uppercase; padding: 15px 15px 5px 15px; letter-spacing: 1px; }
+        .nav-btn { background: transparent; color: #c9d1d9; border: none; padding: 10px 15px; text-align: left; cursor: pointer; font-size: 14px; border-left: 3px solid transparent; transition: 0.2s;}
+        .nav-btn:hover { background: #161b22; }
+        .nav-btn.active { background: #1f6feb20; border-left-color: #58a6ff; color: #58a6ff; font-weight: bold; }
+
+        /* Master-Detail Layout */
+        .content-area { flex-grow: 1; display: flex; background: #010409;}
+        .master-list { width: 280px; border-right: 1px solid #30363d; background: #0d1117; display: flex; flex-direction: column;}
+        .list-header { padding: 10px; border-bottom: 1px solid #30363d; display: flex; justify-content: space-between; align-items: center; background: #161b22;}
+        .list-items { flex-grow: 1; overflow-y: auto; }
+        .list-item { padding: 12px 15px; border-bottom: 1px solid #21262d; cursor: pointer; display: flex; flex-direction: column; gap: 3px;}
+        .list-item:hover { background: #161b22; }
+        .list-item.selected { background: #1f6feb20; border-left: 3px solid #58a6ff; }
+        .item-title { font-weight: bold; color: #c9d1d9; font-size: 14px;}
+        .item-sub { color: #8b949e; font-size: 11px; }
+
+        /* Detail Form Area */
+        .detail-pane { flex-grow: 1; padding: 25px; overflow-y: auto; }
+        .form-section { border: 1px solid #30363d; border-radius: 6px; background: #0d1117; margin-bottom: 20px; padding: 20px;}
+        .section-title { color: #58a6ff; font-weight: bold; font-size: 16px; margin-bottom: 15px; border-bottom: 1px solid #21262d; padding-bottom: 8px;}
+        
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .form-group { display: flex; flex-direction: column; gap: 5px; }
+        .form-group.full { grid-column: span 2; }
+        .form-group label { color: #8b949e; font-size: 12px; font-weight: bold; }
+        .form-group input, .form-group select { background: #010409; border: 1px solid #30363d; color: #c9d1d9; padding: 8px 10px; border-radius: 4px; font-size: 14px; outline: none;}
+        .form-group input:focus, .form-group select:focus { border-color: #58a6ff; }
+        
+        .gui-btn { background: #238636; color: white; border: 1px solid rgba(240,246,252,0.1); border-radius: 6px; padding: 6px 12px; cursor: pointer; font-weight: 500; }
+        .gui-btn:hover { background: #2ea043; }
+        .gui-btn.danger { background: #da3633; }
+        .gui-btn.danger:hover { background: #f85149; }
+        
+        /* Empty State */
+        .empty-state { height: 100%; display: flex; align-items: center; justify-content: center; color: #8b949e; font-style: italic; }
+    </style>
+</head>
+<body>
+
+<div id="header">
+    <div>
+        <h2 style="margin: 0; color: #c9d1d9;">CDC <span style="color: #58a6ff;">DATABASE ARCHITECT</span></h2>
+        <div style="color: #8b949e; font-size: 12px;">GUI Database Editor v1.0</div>
+    </div>
+    <div style="display: flex; gap: 10px;">
+        <button class="gui-btn" style="background: #1f6feb;" onclick="exportAll()">💾 Export DLC Package (.zip)</button>
+    </div>
+</div>
+
+<div id="workspace">
+    <div class="sidebar">
+        <div class="sidebar-category">Database</div>
+        <button class="nav-btn active" onclick="switchTab('scenario')">🌍 Campaign Settings</button>
+        <button class="nav-btn" onclick="switchTab('units')">🪖 Order of Battle (Units)</button>
+        <div class="sidebar-category">Rules & Physics</div>
+        <button class="nav-btn" onclick="switchTab('battalions')">📊 Battalion Types</button>
+        <button class="nav-btn" onclick="switchTab('weapons')">🔫 Armory & Ranges</button>
+    </div>
+
+    <div class="content-area" id="main-editor">
+        </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+<script>
+    // ==========================================
+    // 1. IN-MEMORY DATABASE (State)
+    // ==========================================
+    const db = {
+        scenario: {
+            "scenario_name": "New Theater Operation",
+            "description": "A customized scenario database.",
+            "map_config": {
+                "bounds": { "min_lon": 60.0, "max_lon": 75.0, "min_lat": 29.0, "max_lat": 39.0 },
+                "grid_resolution": [200, 200],
+                "dem_dir": "maps/dem_tiles", "roads_file": "maps/roads.tif", "provinces_file": "maps/provinces.geojson"
+            },
+            "initial_units_file": "units.json",
+            "diplomacy_blocs": [ { "bloc_name": "NATO", "members": ["US", "UK"] }, { "bloc_name": "OPFOR", "members": ["RU"] } ]
+        },
+        units: {
+            "unit_001": {
+                "name": "1st Vanguard Brigade", "faction": "NATO", "personnel": 5000, "lon": 65.0, "lat": 35.0,
+                "unit_type": "ARMY", "equipment_level": 3.0, "primary_weapon": "M4", "stance": "DEFENSIVE", "composition": {"inf": 3, "arm": 1}
+            }
+        },
+        battalions: {
+            "inf": { "name": "Infantry", "speed": 15, "soft": 45, "hard": 10, "armor": 0, "defense": 60, "org": 60, "terrain": 0.8 },
+            "arm": { "name": "Armor", "speed": 25, "soft": 35, "hard": 60, "armor": 200, "defense": 20, "org": 20, "terrain": 0.3 }
+        },
+        weapons: {
+            "M4": { "name": "Standard 5.56mm", "range": 0.6 },
+            "Howitzer": { "name": "155mm Artillery", "range": 30.0 }
+        }
+    };
+
+    let currentTab = 'scenario';
+    let selectedItemId = null; // Used for lists (units, weapons, etc)
+
+    // ==========================================
+    // 2. VIEW CONTROLLER
+    // ==========================================
+    function switchTab(tabId) {
+        currentTab = tabId;
+        selectedItemId = null;
+        document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+        event.currentTarget.classList.add('active');
+        renderView();
+    }
+
+    function renderView() {
+        const container = document.getElementById('main-editor');
+        container.innerHTML = ''; // Clear
+        
+        if (currentTab === 'scenario') {
+            container.innerHTML = renderScenarioForm();
+        } else if (currentTab === 'units') {
+            container.innerHTML = renderMasterDetail('units', 'Add Unit');
+            renderUnitDetail();
+        } else if (currentTab === 'battalions') {
+            container.innerHTML = renderMasterDetail('battalions', 'Add Battalion');
+            renderBattalionDetail();
+        } else if (currentTab === 'weapons') {
+            container.innerHTML = renderMasterDetail('weapons', 'Add Weapon');
+            renderWeaponDetail();
+        }
+    }
+
+    // ==========================================
+    // 3. RENDERERS (GUI Engine)
+    // ==========================================
+    
+    // --- SCENARIO FORM ---
+    function renderScenarioForm() {
+        const s = db.scenario;
+        const b = s.map_config.bounds;
+        return `
+            <div class="detail-pane">
+                <div class="form-section">
+                    <div class="section-title">General Briefing</div>
+                    <div class="form-grid">
+                        <div class="form-group full">
+                            <label>Scenario Name</label>
+                            <input type="text" value="${s.scenario_name}" onchange="db.scenario.scenario_name = this.value">
+                        </div>
+                        <div class="form-group full">
+                            <label>Description</label>
+                            <input type="text" value="${s.description}" onchange="db.scenario.description = this.value">
+                        </div>
+                    </div>
+                </div>
+                <div class="form-section">
+                    <div class="section-title">Map Boundaries (Coordinates)</div>
+                    <div class="form-grid">
+                        <div class="form-group"><label>Min Longitude (West)</label><input type="number" step="0.1" value="${b.min_lon}" onchange="db.scenario.map_config.bounds.min_lon = parseFloat(this.value)"></div>
+                        <div class="form-group"><label>Max Longitude (East)</label><input type="number" step="0.1" value="${b.max_lon}" onchange="db.scenario.map_config.bounds.max_lon = parseFloat(this.value)"></div>
+                        <div class="form-group"><label>Min Latitude (South)</label><input type="number" step="0.1" value="${b.min_lat}" onchange="db.scenario.map_config.bounds.min_lat = parseFloat(this.value)"></div>
+                        <div class="form-group"><label>Max Latitude (North)</label><input type="number" step="0.1" value="${b.max_lat}" onchange="db.scenario.map_config.bounds.max_lat = parseFloat(this.value)"></div>
+                    </div>
+                </div>
+                <div class="form-section">
+                    <div class="section-title">File Paths (Relative to DLC folder)</div>
+                    <div class="form-grid">
+                        <div class="form-group"><label>Elevation Matrix Folder (DEM)</label><input type="text" value="${s.map_config.dem_dir}" onchange="db.scenario.map_config.dem_dir = this.value"></div>
+                        <div class="form-group"><label>Road Network (.tif/.geojson)</label><input type="text" value="${s.map_config.roads_file}" onchange="db.scenario.map_config.roads_file = this.value"></div>
+                        <div class="form-group"><label>Administrative Borders (.geojson)</label><input type="text" value="${s.map_config.provinces_file}" onchange="db.scenario.map_config.provinces_file = this.value"></div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    // --- MASTER LIST LAYOUT ---
+    function renderMasterDetail(collectionKey, addBtnText) {
+        let listHtml = '';
+        for (const [id, item] of Object.entries(db[collectionKey])) {
+            const isSelected = id === selectedItemId ? 'selected' : '';
+            const sub = item.faction || item.range || item.speed || '';
+            listHtml += `
+                <div class="list-item ${isSelected}" onclick="selectItem('${collectionKey}', '${id}')">
+                    <div class="item-title">${item.name || id}</div>
+                    <div class="item-sub">${id} | ${sub}</div>
+                </div>
+            `;
+        }
+        
+        return `
+            <div class="master-list">
+                <div class="list-header">
+                    <span style="font-weight:bold; color:#c9d1d9;">Entries</span>
+                    <button class="gui-btn" style="padding: 4px 8px; font-size:12px;" onclick="createNewItem('${collectionKey}')">${addBtnText}</button>
+                </div>
+                <div class="list-items" id="master-list-container">${listHtml}</div>
+            </div>
+            <div class="detail-pane" id="detail-container"></div>
+        `;
+    }
+
+    function selectItem(collectionKey, id) {
+        selectedItemId = id;
+        renderView(); // Re-render to update highlights and form
+    }
+
+    function createNewItem(collectionKey) {
+        const newId = `new_item_${Date.now().toString().slice(-4)}`;
+        if (collectionKey === 'units') db.units[newId] = { name: "New Unit", faction: "UNKNOWN", personnel: 1000, lon: 0, lat: 0, unit_type: "ARMY", equipment_level: 1, composition: {"inf":1}, primary_weapon: "None", stance: "AGGRESSIVE" };
+        if (collectionKey === 'weapons') db.weapons[newId] = { name: "New Weapon", range: 1.0 };
+        if (collectionKey === 'battalions') db.battalions[newId] = { name: "New Battalion", speed: 10, soft: 10, hard: 10, armor: 0, defense: 10, org: 50, terrain: 1.0 };
+        
+        selectedItemId = newId;
+        renderView();
+    }
+
+    // --- UNIT DETAIL FORM ---
+    function renderUnitDetail() {
+        const container = document.getElementById('detail-container');
+        if (!selectedItemId) { container.innerHTML = `<div class="empty-state">Select a unit from the list to edit.</div>`; return; }
+        
+        const u = db.units[selectedItemId];
+        const updateObj = `db.units['${selectedItemId}']`;
+
+        let weaponOptions = '';
+        for (const wId of Object.keys(db.weapons)) { weaponOptions += `<option value="${wId}" ${u.primary_weapon === wId ? 'selected' : ''}>${wId}</option>`; }
+
+        container.innerHTML = `
+            <div class="form-section">
+                <div style="display:flex; justify-content:space-between;">
+                    <div class="section-title">Unit Identity</div>
+                    <button class="gui-btn danger" onclick="deleteItem('units', '${selectedItemId}')">🗑️ Delete</button>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group"><label>Unit ID (Internal)</label><input type="text" value="${selectedItemId}" readonly style="opacity:0.5;"></div>
+                    <div class="form-group"><label>Display Name</label><input type="text" value="${u.name}" onchange="${updateObj}.name = this.value; renderView();"></div>
+                    <div class="form-group"><label>Faction</label><input type="text" value="${u.faction}" onchange="${updateObj}.faction = this.value; renderView();"></div>
+                    <div class="form-group"><label>Unit Type</label>
+                        <select onchange="${updateObj}.unit_type = this.value">
+                            <option value="ARMY" ${u.unit_type==='ARMY'?'selected':''}>ARMY (Ground Force)</option>
+                            <option value="AIR_FORCE" ${u.unit_type==='AIR_FORCE'?'selected':''}>AIR_FORCE (Aviation)</option>
+                            <option value="ARTILLERY" ${u.unit_type==='ARTILLERY'?'selected':''}>ARTILLERY (Fire Support)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="form-section">
+                <div class="section-title">Deployment & Posture</div>
+                <div class="form-grid">
+                    <div class="form-group"><label>Initial Longitude</label><input type="number" step="0.001" value="${u.lon}" onchange="${updateObj}.lon = parseFloat(this.value)"></div>
+                    <div class="form-group"><label>Initial Latitude</label><input type="number" step="0.001" value="${u.lat}" onchange="${updateObj}.lat = parseFloat(this.value)"></div>
+                    <div class="form-group"><label>Default Stance</label>
+                        <select onchange="${updateObj}.stance = this.value">
+                            <option value="AGGRESSIVE" ${u.stance==='AGGRESSIVE'?'selected':''}>AGGRESSIVE</option>
+                            <option value="DEFENSIVE" ${u.stance==='DEFENSIVE'?'selected':''}>DEFENSIVE</option>
+                            <option value="STEALTH" ${u.stance==='STEALTH'?'selected':''}>STEALTH (Guerrilla)</option>
+                        </select>
+                    </div>
+                    <div class="form-group"><label>Primary Weapon</label><select onchange="${updateObj}.primary_weapon = this.value">${weaponOptions}</select></div>
+                </div>
+            </div>
+            <div class="form-section">
+                <div class="section-title">Order of Battle (Composition)</div>
+                <p style="font-size:12px; color:#8b949e; margin-top:-5px;">Enter the number of battalions. Base stats will be calculated dynamically.</p>
+                <div class="form-grid" id="comp-editor-grid">
+                    </div>
+            </div>
+        `;
+
+        // Render dynamic composition inputs
+        const compGrid = document.getElementById('comp-editor-grid');
+        for (const bId of Object.keys(db.battalions)) {
+            const currentCount = u.composition[bId] || 0;
+            compGrid.innerHTML += `
+                <div class="form-group">
+                    <label>${db.battalions[bId].name} (${bId})</label>
+                    <input type="number" min="0" value="${currentCount}" onchange="updateComposition('${selectedItemId}', '${bId}', parseInt(this.value))">
+                </div>
+            `;
+        }
+    }
+
+    function updateComposition(unitId, batId, count) {
+        if (!db.units[unitId].composition) db.units[unitId].composition = {};
+        if (count > 0) db.units[unitId].composition[batId] = count;
+        else delete db.units[unitId].composition[batId];
+    }
+
+    // --- WEAPON DETAIL FORM ---
+    function renderWeaponDetail() {
+        const container = document.getElementById('detail-container');
+        if (!selectedItemId) { container.innerHTML = `<div class="empty-state">Select a weapon to edit.</div>`; return; }
+        const w = db.weapons[selectedItemId];
+        container.innerHTML = `
+            <div class="form-section">
+                <div style="display:flex; justify-content:space-between;"><div class="section-title">Weapon Parameters</div><button class="gui-btn danger" onclick="deleteItem('weapons', '${selectedItemId}')">🗑️ Delete</button></div>
+                <div class="form-grid">
+                    <div class="form-group full"><label>Display Name</label><input type="text" value="${w.name}" onchange="db.weapons['${selectedItemId}'].name = this.value; renderView();"></div>
+                    <div class="form-group"><label>Effective Range (km)</label><input type="number" step="0.1" value="${w.range}" onchange="db.weapons['${selectedItemId}'].range = parseFloat(this.value)"></div>
+                </div>
+            </div>
+        `;
+    }
+
+    // --- BATTALION DETAIL FORM ---
+    function renderBattalionDetail() {
+        const container = document.getElementById('detail-container');
+        if (!selectedItemId) { container.innerHTML = `<div class="empty-state">Select a battalion type to edit.</div>`; return; }
+        const b = db.battalions[selectedItemId];
+        const updateObj = `db.battalions['${selectedItemId}']`;
+        container.innerHTML = `
+            <div class="form-section">
+                <div style="display:flex; justify-content:space-between;"><div class="section-title">Battalion Physics & Stats</div><button class="gui-btn danger" onclick="deleteItem('battalions', '${selectedItemId}')">🗑️ Delete</button></div>
+                <div class="form-grid">
+                    <div class="form-group full"><label>Display Name</label><input type="text" value="${b.name}" onchange="${updateObj}.name = this.value; renderView();"></div>
+                    <div class="form-group"><label>Base Speed (km/h)</label><input type="number" value="${b.speed}" onchange="${updateObj}.speed = parseFloat(this.value)"></div>
+                    <div class="form-group"><label>Terrain Efficiency</label><input type="number" step="0.1" value="${b.terrain || 1.0}" onchange="${updateObj}.terrain = parseFloat(this.value)"></div>
+                    <div class="form-group"><label>Soft Attack</label><input type="number" value="${b.soft}" onchange="${updateObj}.soft = parseFloat(this.value)"></div>
+                    <div class="form-group"><label>Hard Attack (Anti-Armor)</label><input type="number" value="${b.hard}" onchange="${updateObj}.hard = parseFloat(this.value)"></div>
+                    <div class="form-group"><label>Armor Thickness</label><input type="number" value="${b.armor}" onchange="${updateObj}.armor = parseFloat(this.value)"></div>
+                    <div class="form-group"><label>Defense</label><input type="number" value="${b.defense}" onchange="${updateObj}.defense = parseFloat(this.value)"></div>
+                    <div class="form-group"><label>Organization (Morale Base)</label><input type="number" value="${b.org}" onchange="${updateObj}.org = parseFloat(this.value)"></div>
+                </div>
+            </div>
+        `;
+    }
+
+    function deleteItem(collection, id) {
+        if (confirm("Delete this entry completely?")) {
+            delete db[collection][id];
+            selectedItemId = null;
+            renderView();
+        }
+    }
+
+    // ==========================================
+    // 4. EXPORT ENGINE (JSZip)
+    // ==========================================
+    function exportAll() {
+        const zip = new JSZip();
+        zip.file("scenario.json", JSON.stringify(db.scenario, null, 2));
+        zip.file("units.json", JSON.stringify(db.units, null, 2));
+        zip.file("battalions.json", JSON.stringify(db.battalions, null, 2));
+        zip.file("weapons.json", JSON.stringify(db.weapons, null, 2));
+        
+        zip.generateAsync({type:"blob"}).then(function(content) {
+            const a = document.createElement("a");
+            a.href = URL.createObjectURL(content);
+            a.download = `cdc_dlc_${Date.now()}.zip`;
+            a.click();
+        });
+    }
+
+    // Initialize
+    window.onload = renderView;
+</script>
+</body>
+</html>

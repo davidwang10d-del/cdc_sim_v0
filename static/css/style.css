@@ -1,0 +1,98 @@
+/* =========================================
+   Base Layout & Map Canvas
+   ========================================= */
+body { margin: 0; padding: 0; background-color: #050a0f; color: #a5d6ff; font-family: 'Courier New', Courier, monospace; overflow: hidden; user-select: none; }
+#map { width: 100vw; height: 100vh; z-index: 1; background: #000; }
+
+/* =========================================
+   CRT Scanline Overlay Effect
+   ========================================= */
+#crt-overlay {
+    position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+    background-size: 100% 2px, 3px 100%; z-index: 999; pointer-events: none; transition: background 0.5s;
+}
+
+/* =========================================
+   Glassmorphism UI Panels
+   ========================================= */
+.glass-panel {
+    background: rgba(5, 10, 15, 0.85); border: 1px solid #1f6feb; border-radius: 4px;
+    box-shadow: 0 0 15px rgba(31, 111, 235, 0.3), inset 0 0 10px rgba(31, 111, 235, 0.2);
+    backdrop-filter: blur(8px); z-index: 1000; position: absolute;
+}
+.panel-title { color: #58a6ff; font-weight: bold; border-bottom: 1px solid #1f6feb; padding-bottom: 5px; margin-bottom: 8px; text-transform: uppercase; font-size: 14px; letter-spacing: 1px; }
+
+/* --- Deployment Tool Panel --- */
+#deploy-panel { display: none; top: 15px; left: 15px; width: 300px; padding: 15px; border-color: #d97706; box-shadow: 0 0 15px rgba(217, 119, 6, 0.2); max-height: 80vh; overflow-y: auto;}
+.dark-input { width: 100%; background: #000; color: #7ee787; border: 1px solid #30363d; padding: 6px; box-sizing: border-box; margin-bottom: 8px; border-radius: 2px; outline: none; font-family: inherit;}
+.comp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 5px;}
+.comp-item { display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.05); padding: 4px; border: 1px solid #30363d; border-radius: 2px;}
+.comp-item label { font-size: 11px; color: #8b949e; margin: 0;}
+.comp-item input { width: 40px; background: transparent; border: none; color: #7ee787; text-align: center; font-weight: bold; outline: none;}
+
+/* --- Tactical HUD (Right Panel) --- */
+#tactical-hud { top: 15px; right: 15px; width: 340px; padding: 15px; }
+.data-row { margin-bottom: 5px; font-size: 13px; }
+.data-label { color: #8b949e; display: inline-block; width: 70px; }
+
+.telemetry-box { background: rgba(0,0,0,0.5); padding: 8px; border: 1px solid #30363d; color: #7ee787; font-size: 12px; margin: 8px 0; display: flex; flex-direction: column; gap: 5px; box-shadow: inset 0 0 5px #000; }
+.telemetry-row { display: flex; justify-content: space-between; }
+
+/* --- Combat Command Confirmation Panel --- */
+#confirmation-panel {
+    display: none; bottom: 150px; right: 15px; width: 320px; padding: 15px;
+    border-color: #d97706; box-shadow: 0 0 15px rgba(217, 119, 6, 0.4);
+    animation: slideIn 0.3s ease-out;
+}
+.target-coords { font-size: 15px; color: #fff; font-weight: bold; background: rgba(0,0,0,0.5); padding: 8px; text-align: center; border: 1px solid #30363d; margin: 10px 0; line-height: 1.5;}
+
+/* --- Intelligence Feed & Combat Logs --- */
+#intel-feed { bottom: 15px; left: 15px; right: 15px; height: 110px; padding: 10px 15px; display: flex; flex-direction: column; }
+#logs-container { overflow-y: auto; flex-grow: 1; font-size: 12px; line-height: 1.5; display: flex; flex-direction: column-reverse; }
+.log-entry { border-left: 2px solid #58a6ff; padding-left: 8px; margin-bottom: 4px; animation: fadeIn 0.5s; }
+.log-combat { border-color: #ff4444; color: #ff7b72; }
+.log-move { border-color: #2ea043; color: #7ee787; }
+.log-system { border-color: #d2a8ff; color: #d2a8ff; }
+
+/* --- Time & Status Control Panel --- */
+#clock-panel { top: 15px; left: 50%; transform: translateX(-50%); padding: 8px 20px; text-align: center; display: flex; align-items: center; gap: 15px; }
+#time-display { font-size: 18px; font-weight: bold; color: #fff; text-shadow: 0 0 5px #fff; letter-spacing: 1px; }
+
+/* =========================================
+   Interactive Command Buttons
+   ========================================= */
+.cmd-btn { background: rgba(35, 134, 54, 0.2); color: #7ee787; border: 1px solid #2ea043; padding: 5px 10px; cursor: pointer; font-family: inherit; font-size: 12px; border-radius: 2px; transition: all 0.2s; }
+.cmd-btn:hover { background: rgba(46, 160, 67, 0.4); box-shadow: 0 0 8px #2ea043; }
+.cmd-btn.active { background: rgba(31, 111, 235, 0.4); border-color: #388bfd; color: #79c0ff; box-shadow: 0 0 8px #58a6ff; }
+.cmd-danger { background: rgba(218, 54, 51, 0.2); border-color: #f85149; color: #ff7b72; }
+.cmd-danger:hover { background: rgba(248, 81, 73, 0.4); box-shadow: 0 0 8px #f85149; }
+.cmd-warn { background: rgba(179, 89, 0, 0.2); border-color: #d97706; color: #e3b341; }
+.cmd-warn:hover { background: rgba(217, 119, 6, 0.4); box-shadow: 0 0 8px #d97706; }
+
+/* =========================================
+   Map Markers & Universal Symbology
+   ========================================= */
+.mil-icon { background-color: transparent; text-align: center; font-weight: bold; text-shadow: 0 0 4px #000, 1px 1px 2px #000; font-size: 16px; transition: none !important; }
+
+/* Highlight effect for selected unit */
+.selected-unit { border: 1px solid #58a6ff; border-radius: 50%; width: 30px !important; height: 30px !important; line-height: 28px; background: radial-gradient(circle, rgba(88,166,255,0.4) 0%, rgba(0,0,0,0) 70%); box-shadow: 0 0 15px #58a6ff; }
+
+/* --- Dynamic Alerts --- */
+#targeting-alert { display: none; position: absolute; top: 70px; left: 50%; transform: translateX(-50%); background: rgba(218, 54, 51, 0.9); color: #fff; padding: 8px 25px; border-radius: 4px; font-weight: bold; z-index: 1000; border: 1px solid #f85149; box-shadow: 0 0 20px #f85149; letter-spacing: 1px; animation: pulse 1s infinite alternate; }
+
+/* --- Leaflet Map Overrides --- */
+.leaflet-bottom.leaflet-left { margin-bottom: 140px; margin-left: 15px; }
+.leaflet-control-scale-line { border: 2px solid #58a6ff; border-top: none; color: #a5d6ff; background: rgba(0,0,0,0.7); box-shadow: 0 0 5px #000; font-weight: bold; padding: 2px 5px; }
+
+/* =========================================
+   Animations & Scrollbars
+   ========================================= */
+@keyframes fadeIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes pulse { from { box-shadow: 0 0 10px #f85149; } to { box-shadow: 0 0 25px #f85149; } }
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); }
+::-webkit-scrollbar-thumb { background: #30363d; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #58a6ff; }

@@ -1,0 +1,18 @@
+# GIS & Map Data (Too large for GitHub)
+*.tif
+*.tiff
+*.vrt
+*.hgt
+
+# Save Files & Logs
+save_*.json
+battle_log.txt
+dem_xray_report.png
+
+# Python Caches
+__pycache__/
+*.py[cod]
+*$py.class
+
+# DLC Temp files (if any)
+dlc/**/maps/*.tif
