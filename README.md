@@ -64,5 +64,4 @@ battalions.json: Entity performance characteristics.
 🤝 Contribution
 We welcome PRs to expand the engine's physics and GIS capabilities! Please read the contributing guidelines before submitting.
 
-📄 License
-Licensed under the MIT License.
+Free for personal use, contact for commercial use
