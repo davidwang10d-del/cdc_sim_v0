@@ -1,6 +1,9 @@
-# CDC Sim v3.0 - Geospatial Strategy Wargame Engine
+# CDC Sim v0 - Geospatial Strategy Wargame Engine
+dedicated for Model united nation milsim
+contact at davidwang.10d@gmail.com for further update advice and cooperation
 
-CDC Sim v3.0 is a military-grade, Python-based Geographic Information System (GIS) wargame and simulation engine designed for tactical and strategic maneuver analysis.
+CDC Sim v0 is a military-grade, Python-based Geographic Information System (GIS) wargame and simulation engine designed for tactical and strategic maneuver analysis.
+Highly customized, create your own dlc to simulate, the afghan folder in dlc is for demonstrate and test purpose only
 
 ---
 
@@ -41,8 +44,8 @@ Running the Engine
 Clone the repository:
 
 Bash
-git clone [https://github.com/your-username/cdc-sim-v3.git](https://github.com/your-username/cdc-sim-v3.git)
-cd cdc-sim-v3
+git clone [https://github.com/your-username/cdc_sim_v0.git](https://github.com/your-username/cdc_sim_v0.git)
+cd cdc_sim_v0
 Download your map data (e.g., SRTM 90m TIF files) and place them in the appropriate DLC folder.
 
 Start the server:
