@@ -19,13 +19,13 @@
         <button class="cmd-btn" style="border-color:#7ee787; color:#7ee787; font-weight:bold; padding: 8px 15px;" onclick="setLang('zh')">中文</button>
     </div>
 
-    <h1 id="bt-title" style="color:#d97706; text-shadow:0 0 15px #d97706; letter-spacing: 5px;">CDC STRATEGIC TERMINAL v3.0</h1>
-    <p id="bt-sub" style="color:#8b949e; margin-bottom: 30px;">[ SYSTEM STANDBY ] AWAITING THEATER MODULE MOUNTING...</p>
+    <h1 id="bt-title" data-zh="CDC 战略统帅终端 v3.0" style="color:#d97706; text-shadow:0 0 15px #d97706; letter-spacing: 5px;">CDC STRATEGIC TERMINAL v3.0</h1>
+    <p id="bt-sub" data-zh="[ 系统待机 ] 等待战役模组挂载..." style="color:#8b949e; margin-bottom: 30px;">[ SYSTEM STANDBY ] AWAITING THEATER MODULE MOUNTING...</p>
     
     <div style="background:rgba(255,255,255,0.05); border:1px solid #30363d; padding:20px; width:600px; border-radius:4px; box-shadow:0 0 20px rgba(0,0,0,0.8);">
-        <h3 id="bt-dlc" style="color:#58a6ff; margin-top:0; border-bottom:1px solid #1f6feb; padding-bottom:10px;">💾 AVAILABLE CAMPAIGN DLCs</h3>
+        <h3 id="bt-dlc" data-zh="💾 可用战区模组 (DLC)" style="color:#58a6ff; margin-top:0; border-bottom:1px solid #1f6feb; padding-bottom:10px;">💾 AVAILABLE CAMPAIGN DLCs</h3>
         <div id="dlc-list-container" style="display:flex; flex-direction:column; gap:10px; max-height:400px; overflow-y:auto;">
-            <div id="bt-scan" style="color:#ff7b72; text-align:center; padding:20px;">Scanning local module directories...</div>
+            <div id="bt-scan" data-zh="正在扫描本地战史数据库..." style="color:#ff7b72; text-align:center; padding:20px;">Scanning local module directories...</div>
         </div>
     </div>
 </div>
@@ -34,106 +34,140 @@
     <div id="time-display" style="padding-right: 15px;">D00 00:00:00</div>
     
     <div style="border-left: 1px solid #30363d; padding-left: 15px; padding-right: 15px; display: flex; align-items: center; gap: 5px;">
-        <button class="cmd-btn" onclick="sendCommand('play')">▶</button>
-        <button class="cmd-btn cmd-danger" onclick="sendCommand('pause')">⏸</button>
+        <button class="cmd-btn" onclick="sendCommand('play')" data-zh="▶">▶</button>
+        <button class="cmd-btn cmd-danger" onclick="sendCommand('pause')" data-zh="⏸">⏸</button>
         <button class="cmd-btn" onclick="sendCommand('speed 1')">1X</button>
         <button class="cmd-btn" onclick="sendCommand('speed 5')">5X</button>
         <input type="number" id="custom-speed-input" value="1.0" step="0.1" style="width: 45px; background: #000; color: #7ee787; border: 1px solid #30363d; text-align: center; font-size:12px; outline:none; padding: 4px;">
-        <button class="cmd-btn" onclick="sendCommand('speed ' + document.getElementById('custom-speed-input').value)">SET</button>
+        <button class="cmd-btn" onclick="sendCommand('speed ' + document.getElementById('custom-speed-input').value)" data-zh="设置">SET</button>
     </div>
     
     <div style="border-left: 1px solid #30363d; padding-left: 15px; padding-right: 15px; display: flex; gap: 5px;">
-        <button id="btn-view-clean" class="cmd-btn active" onclick="switchMapMode('clean')">🌑 Clean</button>
-        <button id="btn-view-topo" class="cmd-btn" onclick="switchMapMode('topo')">⛰️ Topo</button>
-        <button id="btn-view-admin" class="cmd-btn" onclick="switchMapMode('admin')">🏙️ Admin</button>
-        <button id="btn-toggle-roads" class="cmd-btn" onclick="toggleHistoricRoads()">🛣️ Roads</button>
+        <button id="btn-view-clean" class="cmd-btn active" onclick="switchMapMode('clean')" data-zh="🌑 纯净">🌑 Clean</button>
+        <button id="btn-view-topo" class="cmd-btn" onclick="switchMapMode('topo')" data-zh="⛰️ 地形">⛰️ Topo</button>
+        <button id="btn-view-admin" class="cmd-btn" onclick="switchMapMode('admin')" data-zh="🏙️ 行政">🏙️ Admin</button>
+        <button id="btn-toggle-roads" class="cmd-btn" onclick="toggleHistoricRoads()" data-zh="🛣️ 路网">🛣️ Roads</button>
     </div>
 
     <div style="border-left: 1px solid #30363d; padding-left: 15px; display: flex; align-items: center; gap: 5px;">
-        <button class="cmd-btn cmd-warn" onclick="toggleDeployPanel()">🚁 Airdrop</button>
-        <button class="cmd-btn" style="border-color:#d2a8ff; color:#d2a8ff;" onclick="toggleAdminConsole()">⚡ Zeus</button>
-        <button class="cmd-btn" style="border-color:#8b949e; color:#8b949e;" onclick="window.open('/editor', '_blank')">🔧 Editor</button>
-        <div id="pause-status" style="margin-left: 10px; font-size: 12px; color: #ff7b72; white-space: nowrap;">[ PAUSED ]</div>
+        <button class="cmd-btn cmd-warn" onclick="toggleDeployPanel()" data-zh="🚁 空投">🚁 Airdrop</button>
+        <button class="cmd-btn" style="border-color:#d2a8ff; color:#d2a8ff;" onclick="toggleAdminConsole()" data-zh="⚡ 上帝">⚡ Zeus</button>
+        <button class="cmd-btn" style="border-color:#58a6ff; color:#58a6ff;" onclick="toggleSaveLoadPanel()" data-zh="💾 档案">💾 System</button>
+        <button class="cmd-btn" style="border-color:#8b949e; color:#8b949e;" onclick="window.open('/editor', '_blank')" data-zh="🔧 编辑器">🔧 Editor</button>
+        <div id="pause-status" style="margin-left: 10px; font-size: 12px; color: #ff7b72; white-space: nowrap;" data-zh="[ 已暂停 ]">[ PAUSED ]</div>
     </div>
 </div>
 
-<div id="targeting-alert">TARGETING SYSTEM ENGAGED: AWAITING COORDINATES...</div>
+<div id="targeting-alert" data-zh="目标系统已激活：等待指挥官下达坐标...">TARGETING SYSTEM ENGAGED: AWAITING COORDINATES...</div>
 
 <div id="deploy-panel" class="glass-panel">
-    <div class="panel-title" style="color:#d97706; border-color:#d97706;">🚁 THEATER DEPLOYMENT BUREAU</div>
-    <label class="data-label" style="display:block; margin-top:5px; width:100%;">Unit Callsign</label>
+    <div class="panel-title" style="color:#d97706; border-color:#d97706;" data-zh="🚁 战区空投部署局">🚁 THEATER DEPLOYMENT BUREAU</div>
+    <label class="data-label" style="display:block; margin-top:5px; width:100%;" data-zh="部队番号">Unit Callsign</label>
     <input type="text" id="dep-name" value="1st Combined Brigade" class="dark-input">
-    <label class="data-label" style="display:block; width:100%;">Faction Designation</label>
+    <label class="data-label" style="display:block; width:100%;" data-zh="阵营代号">Faction Designation</label>
     <input type="text" id="dep-faction" value="BLUFOR" placeholder="e.g., NATO, OPFOR, UN" class="dark-input">
-    <label class="data-label" style="display:block; border-top:1px dashed #30363d; padding-top:8px; margin-top:5px; width:100%;">Primary Armament (Dictates Range)</label>
+    <label class="data-label" style="display:block; border-top:1px dashed #30363d; padding-top:8px; margin-top:5px; width:100%;" data-zh="主战装备 (决定射程)">Primary Armament (Dictates Range)</label>
     <select id="dep-weapon" class="dark-input" onchange="calcDeployStats()"></select>
-    <label class="data-label" style="display:block; border-top:1px dashed #30363d; padding-top:8px; margin-top:5px; width:100%;">Order of Battle (Battalion Count)</label>
+    <label class="data-label" style="display:block; border-top:1px dashed #30363d; padding-top:8px; margin-top:5px; width:100%;" data-zh="战斗序列 (营级建制)">Order of Battle (Battalion Count)</label>
     <div class="comp-grid" id="dep-comp-grid"></div>
     <div style="background:rgba(0,0,0,0.5); border:1px solid #d97706; padding:8px; border-radius:2px; margin-bottom:10px;">
-        <div style="font-size:12px; color:#8b949e; display:flex; justify-content:space-between;"><span>Base Complement:</span> <b id="dep-pop-display" style="color:#7ee787;">0 Pers.</b></div>
+        <div style="font-size:12px; color:#8b949e; display:flex; justify-content:space-between;"><span data-zh="满编基准人数:">Base Complement:</span> <b id="dep-pop-display" style="color:#7ee787;">0 Pers.</b></div>
     </div>
-    <label class="data-label" style="display:block; width:100%;">Deployed Personnel</label>
+    <label class="data-label" style="display:block; width:100%;" data-zh="实编空投人数">Deployed Personnel</label>
     <input type="number" id="dep-personnel" value="0" class="dark-input">
-    <button class="cmd-btn cmd-warn" style="width:100%; margin-top:5px;" onclick="enableDeployTargeting()">📍 Select Drop Zone on Map</button>
+    <button class="cmd-btn cmd-warn" style="width:100%; margin-top:5px;" onclick="enableDeployTargeting()" data-zh="📍 在地图上选择空投坐标">📍 Select Drop Zone on Map</button>
 </div>
 
 <div id="admin-console" class="glass-panel" style="display:none; top: 70px; left: 50%; transform: translateX(-50%); width: 320px; padding: 15px; border-color: #d2a8ff; box-shadow: 0 0 15px rgba(210, 168, 255, 0.2); z-index: 1001;">
-    <div class="panel-title" style="color:#d2a8ff; border-color:#d2a8ff;">⚡ ZEUS ADMIN CONSOLE</div>
+    <div class="panel-title" style="color:#d2a8ff; border-color:#d2a8ff;" data-zh="⚡ ZEUS 上帝控制台">⚡ ZEUS ADMIN CONSOLE</div>
     <div style="margin-bottom: 15px;">
-        <div style="font-size:12px; color:#8b949e; margin-bottom:5px;">[ UNIT MODIFIERS (BUFF/DEBUFF) ]</div>
+        <div style="font-size:12px; color:#8b949e; margin-bottom:5px;" data-zh="[ 实时部队状态修改 (BUFF/DEBUFF) ]">[ UNIT MODIFIERS (BUFF/DEBUFF) ]</div>
         <select id="admin-mod-type" class="dark-input">
-            <option value="combat">Combat Efficiency (Firepower)</option>
-            <option value="speed">Mobility (Speed)</option>
-            <option value="morale">Morale Recovery</option>
+            <option value="combat" data-zh="战斗效率 (火力乘数)">Combat Efficiency (Firepower)</option>
+            <option value="speed" data-zh="机动性 (速度乘数)">Mobility (Speed)</option>
+            <option value="morale" data-zh="士气恢复">Morale Recovery</option>
         </select>
         <div style="display:flex; gap:5px;">
-            <input type="number" id="admin-mod-val" value="1.5" step="0.1" class="dark-input" style="flex:1;" title="Multiplier (e.g., 1.5 = +50%)">
+            <input type="number" id="admin-mod-val" value="1.5" step="0.1" class="dark-input" style="flex:1;" title="Multiplier">
             <input type="number" id="admin-mod-dur" value="24" class="dark-input" style="flex:1;" title="Duration in Hours">
         </div>
-        <button class="cmd-btn" style="width:100%; border-color:#d2a8ff; color:#d2a8ff;" onclick="applyAdminModifier()">💉 Inject Modifier to Selected Unit</button>
+        <button class="cmd-btn" style="width:100%; border-color:#d2a8ff; color:#d2a8ff;" onclick="applyAdminModifier()" data-zh="💉 对选中部队注入修改器">💉 Inject Modifier to Selected Unit</button>
     </div>
     <div style="margin-bottom: 15px; border-top: 1px dashed #30363d; padding-top: 10px;">
-        <div style="font-size:12px; color:#8b949e; margin-bottom:5px;">[ LIVE UNIT OVERRIDE ]</div>
+        <div style="font-size:12px; color:#8b949e; margin-bottom:5px;" data-zh="[ 强行修改建制 ]">[ LIVE UNIT OVERRIDE ]</div>
         <div style="display:flex; gap:5px;">
             <input type="number" id="admin-edit-hp" placeholder="Set Personnel" class="dark-input" style="flex:1;">
-            <button class="cmd-btn cmd-danger" style="flex:1;" onclick="forceUnitHP()">⚙️ Set HP</button>
+            <button class="cmd-btn cmd-danger" style="flex:1;" onclick="forceUnitHP()" data-zh="⚙️ 设置兵力">⚙️ Set HP</button>
         </div>
     </div>
     <div style="border-top: 1px dashed #30363d; padding-top: 10px;">
-        <div style="font-size:12px; color:#8b949e; margin-bottom:5px;">[ DIPLOMATIC OVERRIDE ]</div>
+        <div style="font-size:12px; color:#8b949e; margin-bottom:5px;" data-zh="[ 外交关系强行介入 ]">[ DIPLOMATIC OVERRIDE ]</div>
         <div style="display:flex; gap:5px;">
             <input type="text" id="admin-dip-f1" placeholder="Faction A" class="dark-input" style="flex:1;">
             <input type="text" id="admin-dip-f2" placeholder="Faction B" class="dark-input" style="flex:1;">
         </div>
         <div style="display:flex; gap:5px; margin-top:5px;">
-            <button class="cmd-btn" style="flex:1; border-color:#7ee787; color:#7ee787;" onclick="forceDiplomacy(true)">🤝 Force Peace</button>
-            <button class="cmd-btn cmd-danger" style="flex:1;" onclick="forceDiplomacy(false)">⚔️ Declare War</button>
+            <button class="cmd-btn" style="flex:1; border-color:#7ee787; color:#7ee787;" onclick="forceDiplomacy(true)" data-zh="🤝 强制和平">🤝 Force Peace</button>
+            <button class="cmd-btn cmd-danger" style="flex:1;" onclick="forceDiplomacy(false)" data-zh="⚔️ 宣战">⚔️ Declare War</button>
         </div>
     </div>
 </div>
 
+<div id="save-load-panel" class="glass-panel" style="display:none; top: 70px; left: 50%; transform: translateX(-50%); width: 320px; padding: 15px; border-color: #58a6ff; box-shadow: 0 0 15px rgba(88, 166, 255, 0.2); z-index: 1002;">
+    <div class="panel-title" style="color:#58a6ff; border-color:#58a6ff; display:flex; justify-content:space-between; align-items:center;">
+        <span data-zh="💾 战区档案管理">💾 ARCHIVE MANAGEMENT</span>
+        <button class="cmd-btn cmd-danger" style="padding:2px 6px; font-size:10px;" onclick="toggleSaveLoadPanel()">X</button>
+    </div>
+    
+    <div style="margin-bottom: 15px;">
+        <div style="font-size:12px; color:#8b949e; margin-bottom:5px;" data-zh="[ 写入态势记忆 ]">[ SAVE THEATER STATE ]</div>
+        <div style="display:flex; gap:5px;">
+            <select id="save-slot" class="dark-input" style="flex:2;">
+                <option value="slot_1" data-zh="记忆节点 1 (Slot 1)">Memory Node 1 (Slot 1)</option>
+                <option value="slot_2" data-zh="记忆节点 2 (Slot 2)">Memory Node 2 (Slot 2)</option>
+                <option value="slot_3" data-zh="记忆节点 3 (Slot 3)">Memory Node 3 (Slot 3)</option>
+            </select>
+            <button class="cmd-btn" style="flex:1; border-color:#7ee787; color:#7ee787;" onclick="saveGame()" data-zh="写入">SAVE</button>
+        </div>
+    </div>
+
+    <div style="border-top: 1px dashed #30363d; padding-top: 10px;">
+        <div style="font-size:12px; color:#8b949e; margin-bottom:5px;" data-zh="[ 载入历史态势 ]">[ LOAD THEATER STATE ]</div>
+        <div style="display:flex; gap:5px;">
+            <select id="load-slot" class="dark-input" style="flex:2;">
+                <option value="slot_1" data-zh="记忆节点 1 (Slot 1)">Memory Node 1 (Slot 1)</option>
+                <option value="slot_2" data-zh="记忆节点 2 (Slot 2)">Memory Node 2 (Slot 2)</option>
+                <option value="slot_3" data-zh="记忆节点 3 (Slot 3)">Memory Node 3 (Slot 3)</option>
+                <option value="initial_reset" data-zh="原始推演起点 (Hard Reset)">Initial State (Hard Reset)</option>
+            </select>
+            <button class="cmd-btn cmd-warn" style="flex:1;" onclick="loadGame()" data-zh="载入">LOAD</button>
+        </div>
+        <div style="font-size:10px; color:#ff7b72; margin-top:5px; text-align:center;" data-zh="* 警告：载入将直接覆盖当前沙盘">* WARNING: Loading overwrites active sandbox.</div>
+    </div>
+</div>
+
 <div id="tactical-hud" class="glass-panel">
-    <div class="panel-title">📡 HIGH-RES TELEMETRY RADAR</div>
-    <div id="unit-info"><div style="color: #8b949e; font-style: italic; text-align: center; padding: 30px 0;">[ RADAR SCANNING ]<br>Awaiting Commander to select a target...</div></div>
+    <div class="panel-title" data-zh="📡 高精度遥测雷达">📡 HIGH-RES TELEMETRY RADAR</div>
+    <div id="unit-info"><div style="color: #8b949e; font-style: italic; text-align: center; padding: 30px 0;" data-zh="[ 雷达扫描中 ]<br>等待指挥官选中目标...">[ RADAR SCANNING ]<br>Awaiting Commander to select a target...</div></div>
 </div>
 
 <div id="confirmation-panel" class="glass-panel">
-    <div class="panel-title" style="color:#d97706; border-color:#d97706;">⚠️ TACTICAL AUTHORIZATION (PROTOCOL ENGAGED)</div>
-    <div style="font-size: 12px; color: #8b949e;">Mission Profile: <span id="draft-type" style="color:#fff; font-weight:bold;">MOVE</span></div>
+    <div class="panel-title" style="color:#d97706; border-color:#d97706;" data-zh="⚠️ 战术授权确认 (PROTOCOL ENGAGED)">⚠️ TACTICAL AUTHORIZATION (PROTOCOL ENGAGED)</div>
+    <div style="font-size: 12px; color: #8b949e;"><span data-zh="规划任务类型:">Mission Profile:</span> <span id="draft-type" style="color:#fff; font-weight:bold;">MOVE</span></div>
     <div class="target-coords" id="draft-coords">LON: 00.000 | LAT: 00.000</div>
     <div style="display: flex; gap: 10px; margin-top: 10px;">
-        <button class="cmd-btn" style="flex: 2; padding: 8px;" onclick="executeDraftedCommand()">✅ AUTHORIZE</button>
-        <button class="cmd-btn cmd-danger" style="flex: 1;" onclick="clearDraft()">❌ ABORT</button>
+        <button class="cmd-btn" style="flex: 2; padding: 8px;" onclick="executeDraftedCommand()" data-zh="✅ 授权执行">✅ AUTHORIZE</button>
+        <button class="cmd-btn cmd-danger" style="flex: 1;" onclick="clearDraft()" data-zh="❌ 终止指令">❌ ABORT</button>
     </div>
 </div>
 
 <div id="intel-feed" class="glass-panel">
-    <div class="panel-title" style="margin-bottom: 2px;">⚡ LIVE THEATER INTEL</div>
+    <div class="panel-title" style="margin-bottom: 2px;" data-zh="⚡ 战区实时情报">⚡ LIVE THEATER INTEL</div>
     <div id="logs-container"></div>
 </div>
 
 <script>
-    // 🟢 Bootloader UI i18n Script
+    // 🟢 Global i18n Injection Script
     function setLang(lang) {
         localStorage.setItem('cdc_lang', lang);
         location.reload(); 
@@ -142,12 +176,32 @@
     document.addEventListener("DOMContentLoaded", () => {
         const curLang = localStorage.getItem('cdc_lang') || 'en';
         if (curLang === 'zh') {
-            document.getElementById('bt-title').innerText = "CDC 战略统帅终端 v3.0";
-            document.getElementById('bt-sub').innerText = "[ 系统待机 ] 等待战役模组挂载...";
-            document.getElementById('bt-dlc').innerText = "💾 可用战区模组 (DLC)";
-            if(document.getElementById('bt-scan')) {
-                document.getElementById('bt-scan').innerText = "正在扫描本地战史数据库...";
+            // 扫描所有带有 data-zh 的标签，进行精准替换
+            document.querySelectorAll('[data-zh]').forEach(el => {
+                if (el.tagName === 'OPTION') {
+                    el.innerText = el.getAttribute('data-zh');
+                } else {
+                    el.innerHTML = el.getAttribute('data-zh');
+                }
+            });
+
+            // 针对输入框和动态占位符的特殊处理
+            const depName = document.getElementById('dep-name');
+            if(depName) depName.value = "第一机动步兵旅";
+            
+            const depFaction = document.getElementById('dep-faction');
+            if(depFaction) {
+                depFaction.value = "蓝军";
+                depFaction.placeholder = "例如: 蓝军, 红军, 北约";
             }
+            
+            const adminHP = document.getElementById('admin-edit-hp');
+            if(adminHP) adminHP.placeholder = "设定具体兵力数值";
+            
+            const f1 = document.getElementById('admin-dip-f1');
+            if(f1) f1.placeholder = "阵营 A";
+            const f2 = document.getElementById('admin-dip-f2');
+            if(f2) f2.placeholder = "阵营 B";
         }
     });
 </script>

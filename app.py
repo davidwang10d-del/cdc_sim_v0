@@ -58,7 +58,7 @@ class MilitaryUnit:
         
         self.primary_weapon = data.get("primary_weapon", "AK-74")
         self.weapon_name = WEAPON_REGISTRY.get(self.primary_weapon, WEAPON_REGISTRY.get("AK-74", _FALLBACK_WEAPONS["AK-74"]))["name"]
-        
+        self.icon = data.get("icon", "")  # customize icon
         self.morale = float(data.get("morale", 100.0))
         self.status = data.get("status", "IDLE")
         
@@ -280,7 +280,8 @@ class MilitaryUnit:
             "id": self.id,
             "name": self.name, 
             "faction": self.faction, 
-            "personnel": self.personnel, 
+            "icon": getattr(self, 'icon', ""),
+            "personnel": self.personnel,
             "lon": self.lon, 
             "lat": self.lat, 
             "speed": self.speed,

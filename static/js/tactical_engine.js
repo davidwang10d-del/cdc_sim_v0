@@ -218,7 +218,9 @@ function setupMapClicks() {
             }
             const data = { 
                 id: "unit_" + Math.floor(Math.random() * 1000000), name: document.getElementById('dep-name').value, 
-                faction: document.getElementById('dep-faction').value, personnel: parseFloat(document.getElementById('dep-personnel').value), 
+                faction: document.getElementById('dep-faction').value, 
+                icon: document.getElementById('dep-icon') ? document.getElementById('dep-icon').value : "",
+                personnel: parseFloat(document.getElementById('dep-personnel').value), 
                 equipment_level: 1.0, lon: e.latlng.lng, lat: e.latlng.lat, unit_type: "ARMY", composition: dynamicComp, primary_weapon: document.getElementById('dep-weapon').value 
             };
             fetch('/api/edit_unit', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) }).then(r => r.json()).then(res => {
@@ -294,10 +296,21 @@ function styleProvince(feature) {
 }
 
 function getUnitIcon(u) {
-    if (u.unit_type === "AIR_FORCE") return "✈️"; if (u.unit_type === "ARTILLERY") return "🎯";
-    if (u.composition) { if (u.composition.eng > 0) return "🌉"; if (u.composition.arm > 0) return "🚜"; if (u.composition.sf > 0)  return "🥷"; }
+    // 🟢 优先级 1：如果部队拥有自定义图标，强制使用自定义图标
+    if (u.icon && u.icon.trim() !== "") {
+        return u.icon;
+    }
+    
+    // 🟢 优先级 2：如果没有自定义图标，回退到自动计算逻辑
+    if (u.unit_type === "AIR_FORCE") return "✈️"; 
+    if (u.unit_type === "ARTILLERY") return "🎯";
+    if (u.composition) { 
+        if (u.composition.eng > 0) return "🌉"; 
+        if (u.composition.arm > 0) return "🚜"; 
+        if (u.composition.sf > 0)  return "🥷"; 
+    }
     return "🪖";
-}
+}    
 
 function fetchState() {
     fetch('/api/state').then(r => r.json()).then(data => {
@@ -498,6 +511,66 @@ function forceDiplomacy(isAllied) {
             document.getElementById('admin-dip-f2').value = '';
         } else {
             alert("Diplomacy override failed: " + res.msg);
+        }
+    });
+}
+// ==========================================
+// ARCHIVE MANAGEMENT (SAVE / LOAD)
+// ==========================================
+
+function toggleSaveLoadPanel() {
+    const panel = document.getElementById('save-load-panel');
+    if (panel.style.display === 'none' || panel.style.display === '') {
+        panel.style.display = 'block';
+        // Hide other panels to avoid clutter
+        document.getElementById('admin-console').style.display = 'none';
+        document.getElementById('deploy-panel').style.display = 'none';
+    } else {
+        panel.style.display = 'none';
+    }
+}
+
+function saveGame() {
+    const slot = document.getElementById('save-slot').value;
+    fetch('/api/save_game', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ slot: slot })
+    }).then(r => r.json()).then(res => {
+        if (res.status === 'ok') {
+            const isZh = localStorage.getItem('cdc_lang') === 'zh';
+            alert(isZh ? `✅ 战局状态已成功写入：${slot}` : `✅ State successfully saved to: ${slot}`);
+            toggleSaveLoadPanel();
+        } else {
+            alert("Save failed. Engine error.");
+        }
+    });
+}
+
+function loadGame() {
+    const slot = document.getElementById('load-slot').value;
+    const isZh = localStorage.getItem('cdc_lang') === 'zh';
+    
+    if(!confirm(isZh ? "⚠️ 警告：载入档案将覆盖当前的物理引擎状态，确认执行？" : "⚠️ WARNING: Loading will overwrite the current physics engine state. Proceed?")) {
+        return;
+    }
+    
+    fetch('/api/load_game', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ slot: slot })
+    }).then(r => r.json()).then(res => {
+        if (res.status === 'ok') {
+            alert(isZh ? `🔄 记忆读取成功，战局已重置！` : `🔄 Memory read successful. Theater restored!`);
+            toggleSaveLoadPanel();
+            
+            // Clear current UI selections and draft lines
+            deselectUnit();
+            
+            // Force immediate UI refresh
+            fetchState();
+        } else {
+            alert((isZh ? "读取失败: " : "Load failed: ") + res.msg);
         }
     });
 }

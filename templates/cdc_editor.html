@@ -9,14 +9,14 @@
         #header { background: #161b22; border-bottom: 1px solid #30363d; padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; z-index: 10; box-shadow: 0 4px 10px rgba(0,0,0,0.5);}
         #workspace { display: flex; flex-grow: 1; overflow: hidden; }
         
-        /* FM-style Sidebar */
+        /* Sidebar Navigation | 侧边栏导航 */
         .sidebar { width: 250px; background: #0d1117; border-right: 1px solid #30363d; display: flex; flex-direction: column; overflow-y: auto;}
         .sidebar-category { color: #8b949e; font-size: 11px; font-weight: bold; text-transform: uppercase; padding: 15px 15px 5px 15px; letter-spacing: 1px; }
         .nav-btn { background: transparent; color: #c9d1d9; border: none; padding: 10px 15px; text-align: left; cursor: pointer; font-size: 14px; border-left: 3px solid transparent; transition: 0.2s;}
         .nav-btn:hover { background: #161b22; }
         .nav-btn.active { background: #1f6feb20; border-left-color: #58a6ff; color: #58a6ff; font-weight: bold; }
 
-        /* Master-Detail Layout */
+        /* Master-Detail Layout | 主从视图布局 */
         .content-area { flex-grow: 1; display: flex; background: #010409;}
         .master-list { width: 280px; border-right: 1px solid #30363d; background: #0d1117; display: flex; flex-direction: column;}
         .list-header { padding: 10px; border-bottom: 1px solid #30363d; display: flex; justify-content: space-between; align-items: center; background: #161b22;}
@@ -27,7 +27,7 @@
         .item-title { font-weight: bold; color: #c9d1d9; font-size: 14px;}
         .item-sub { color: #8b949e; font-size: 11px; }
 
-        /* Detail Form Area */
+        /* Detail Form Area | 详情表单区 */
         .detail-pane { flex-grow: 1; padding: 25px; overflow-y: auto; }
         .form-section { border: 1px solid #30363d; border-radius: 6px; background: #0d1117; margin-bottom: 20px; padding: 20px;}
         .section-title { color: #58a6ff; font-weight: bold; font-size: 16px; margin-bottom: 15px; border-bottom: 1px solid #21262d; padding-bottom: 8px;}
@@ -39,35 +39,38 @@
         .form-group input, .form-group select { background: #010409; border: 1px solid #30363d; color: #c9d1d9; padding: 8px 10px; border-radius: 4px; font-size: 14px; outline: none;}
         .form-group input:focus, .form-group select:focus { border-color: #58a6ff; }
         
-        .gui-btn { background: #238636; color: white; border: 1px solid rgba(240,246,252,0.1); border-radius: 6px; padding: 6px 12px; cursor: pointer; font-weight: 500; }
+        /* GUI Buttons | 图形界面按钮 */
+        .gui-btn { background: #238636; color: white; border: 1px solid rgba(240,246,252,0.1); border-radius: 6px; padding: 6px 12px; cursor: pointer; font-weight: 500; font-family: inherit; }
         .gui-btn:hover { background: #2ea043; }
         .gui-btn.danger { background: #da3633; }
         .gui-btn.danger:hover { background: #f85149; }
         
-        /* Empty State */
         .empty-state { height: 100%; display: flex; align-items: center; justify-content: center; color: #8b949e; font-style: italic; }
     </style>
 </head>
 <body>
 
+<div id="crt-overlay"></div>
+
 <div id="header">
     <div>
-        <h2 style="margin: 0; color: #c9d1d9;">CDC <span style="color: #58a6ff;">DATABASE ARCHITECT</span></h2>
-        <div style="color: #8b949e; font-size: 12px;">GUI Database Editor v1.0</div>
+        <h2 style="margin: 0; color: #c9d1d9;">CDC <span style="color: #58a6ff;" id="ui-title">DATABASE ARCHITECT</span></h2>
+        <div style="color: #8b949e; font-size: 12px;" id="ui-subtitle">GUI Database Editor v1.0 | Military-Grade Modding Tool</div>
     </div>
-    <div style="display: flex; gap: 10px;">
-        <button class="gui-btn" style="background: #1f6feb;" onclick="exportAll()">💾 Export DLC Package (.zip)</button>
+    <div style="display: flex; gap: 10px; align-items: center;">
+        <button class="gui-btn" style="background: transparent; border-color: #58a6ff; color: #58a6ff;" onclick="toggleLang()">🌍 EN / 中</button>
+        <button class="gui-btn" style="background: #1f6feb;" onclick="exportAll()" id="ui-export">💾 Export DLC Package (.zip)</button>
     </div>
 </div>
 
 <div id="workspace">
     <div class="sidebar">
-        <div class="sidebar-category">Database</div>
-        <button class="nav-btn active" onclick="switchTab('scenario')">🌍 Campaign Settings</button>
-        <button class="nav-btn" onclick="switchTab('units')">🪖 Order of Battle (Units)</button>
-        <div class="sidebar-category">Rules & Physics</div>
-        <button class="nav-btn" onclick="switchTab('battalions')">📊 Battalion Types</button>
-        <button class="nav-btn" onclick="switchTab('weapons')">🔫 Armory & Ranges</button>
+        <div class="sidebar-category" id="nav-cat-1">DATABASE</div>
+        <button class="nav-btn active" onclick="switchTab('scenario')" id="nav-scenario">🌍 Campaign Settings</button>
+        <button class="nav-btn" onclick="switchTab('units')" id="nav-units">🪖 Order of Battle (OOB)</button>
+        <div class="sidebar-category" id="nav-cat-2">PHYSICS & RULES</div>
+        <button class="nav-btn" onclick="switchTab('battalions')" id="nav-battalions">📊 Battalion Types</button>
+        <button class="nav-btn" onclick="switchTab('weapons')" id="nav-weapons">🔫 Armory & Ranges</button>
     </div>
 
     <div class="content-area" id="main-editor">
@@ -77,43 +80,119 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
 <script>
+    /**
+     * @fileoverview CDC Scenario Architect Core Logic
+     * Handles data binding, i18n translation, and zip compilation.
+     * CDC 战区架构师核心逻辑：处理数据绑定、国际化翻译以及 Zip 打包。
+     */
+
     // ==========================================
-    // 1. IN-MEMORY DATABASE (State)
+    // 1. I18N DICTIONARY | 国际化字典
+    // ==========================================
+    const i18n = {
+        en: {
+            title: "DATABASE ARCHITECT", sub: "GUI Database Editor v1.0 | Military-Grade Modding Tool", export: "💾 Export DLC Package (.zip)",
+            cat1: "DATABASE", cat2: "PHYSICS & RULES", nav_scen: "🌍 Campaign Settings", nav_unit: "🪖 Order of Battle (OOB)", nav_bat: "📊 Battalion Types", nav_wea: "🔫 Armory & Ranges",
+            scen_info: "General Briefing", scen_name: "Scenario Name", scen_desc: "Description (Shown in Bootloader)",
+            scen_bounds: "Map Boundaries (Coordinates)", lon_min: "Min Longitude (West)", lon_max: "Max Longitude (East)", lat_min: "Min Latitude (South)", lat_max: "Max Latitude (North)",
+            list_title: "Entries", btn_add: "Add New", empty_state: "Select an item from the list to edit.",
+            unit_id: "Unit Identity", del: "🗑️ Delete", uid: "Internal ID", uname: "Display Name", ufac: "Faction", uicon: "Custom Icon (Emoji/Text)", utype: "Unit Type",
+            upos: "Deployment & Posture", ulon: "Initial Longitude", ulat: "Initial Latitude", ustance: "Default Stance", uwea: "Primary Weapon",
+            ucomp: "Order of Battle (Composition)", ucomp_sub: "Enter the number of battalions. Base stats calculate dynamically.",
+            wea_param: "Weapon Parameters", wea_name: "Weapon Name", wea_range: "Effective Range (km)",
+            bat_stat: "Battalion Physics & Stats", bat_name: "Battalion Name", bat_spd: "Base Speed (km/h)", bat_ter: "Terrain Efficiency (0.1-2.0)",
+            bat_soft: "Soft Attack", bat_hard: "Hard Attack (Anti-Armor)", bat_arm: "Armor Thickness", bat_def: "Defense", bat_org: "Organization (Morale Base)"
+        },
+        zh: {
+            title: "战区架构师", sub: "GUI 数据库编辑器 v1.0 | 军用级剧本开发工具", export: "💾 导出 DLC 全量数据包 (.zip)",
+            cat1: "剧本数据库", cat2: "物理与规则", nav_scen: "🌍 战役全局设置", nav_unit: "🪖 战斗序列 (OOB)", nav_bat: "📊 兵种数值库", nav_wea: "🔫 兵器谱与射程",
+            scen_info: "战役基本信息", scen_name: "战役名称", scen_desc: "背景描述 (显示在启动界面)",
+            scen_bounds: "地理空间边界 (经纬度)", lon_min: "最小经度 (西界)", lon_max: "最大经度 (东界)", lat_min: "最小纬度 (南界)", lat_max: "最大纬度 (北界)",
+            list_title: "条目列表", btn_add: "新增条目", empty_state: "请从左侧列表选择条目进行编辑",
+            unit_id: "单位身份标识", del: "🗑️ 删除", uid: "唯一 ID (不可重复)", uname: "显示名称", ufac: "所属阵营", uicon: "自定义雷达图标 (Emoji 或 文本)", utype: "单位类型",
+            upos: "部署坐标与姿态", ulon: "初始经度", ulat: "初始纬度", ustance: "初始战术姿态", uwea: "主战武装",
+            ucomp: "建制构成 (营级数量)", ucomp_sub: "输入各营的数量，系统将基于此自动推算部队的综合战斗力。",
+            wea_param: "武器物理参数", wea_name: "武器显示名称", wea_range: "作战射程 (公里)",
+            bat_stat: "兵种物理素质库", bat_name: "兵种名称", bat_spd: "基础速度 (km/h)", bat_ter: "地形适应力 (0.1 - 2.0)",
+            bat_soft: "软目标杀伤 (Soft)", bat_hard: "硬目标杀伤 (Hard)", bat_arm: "护甲厚度 (Armor)", bat_def: "防御强度 (Defense)", bat_org: "基础组织度 (Org)"
+        }
+    };
+
+    let currentLang = localStorage.getItem('cdc_lang') || 'en';
+
+    /**
+     * Retrieves the translated string for a given key.
+     * 获取指定键值的本地化翻译字符串。
+     * @param {string} key - Dictionary key | 字典键名
+     * @returns {string} Translated text | 翻译后的文本
+     */
+    function t(key) {
+        return i18n[currentLang][key] || key;
+    }
+
+    /**
+     * Toggles the global interface language and re-renders the UI.
+     * 切换全局界面语言并重新渲染 UI。
+     */
+    function toggleLang() {
+        currentLang = currentLang === 'en' ? 'zh' : 'en';
+        localStorage.setItem('cdc_lang', currentLang);
+        updateStaticUI();
+        renderView();
+    }
+
+    function updateStaticUI() {
+        document.getElementById('ui-title').innerText = t('title');
+        document.getElementById('ui-subtitle').innerText = t('sub');
+        document.getElementById('ui-export').innerText = t('export');
+        document.getElementById('nav-cat-1').innerText = t('cat1');
+        document.getElementById('nav-cat-2').innerText = t('cat2');
+        document.getElementById('nav-scenario').innerText = t('nav_scen');
+        document.getElementById('nav-units').innerText = t('nav_unit');
+        document.getElementById('nav-battalions').innerText = t('nav_bat');
+        document.getElementById('nav-weapons').innerText = t('nav_wea');
+    }
+
+    // ==========================================
+    // 2. IN-MEMORY DATABASE | 内存数据库状态
     // ==========================================
     const db = {
         scenario: {
-            "scenario_name": "New Theater Operation",
-            "description": "A customized scenario database.",
+            "scenario_name": "Operation Vanguard",
+            "description": "Custom operation database.",
             "map_config": {
                 "bounds": { "min_lon": 60.0, "max_lon": 75.0, "min_lat": 29.0, "max_lat": 39.0 },
                 "grid_resolution": [200, 200],
                 "dem_dir": "maps/dem_tiles", "roads_file": "maps/roads.tif", "provinces_file": "maps/provinces.geojson"
             },
             "initial_units_file": "units.json",
-            "diplomacy_blocs": [ { "bloc_name": "NATO", "members": ["US", "UK"] }, { "bloc_name": "OPFOR", "members": ["RU"] } ]
+            "diplomacy_blocs": [ { "bloc_name": "BLUFOR", "members": ["NATO"] } ]
         },
         units: {
-            "unit_001": {
-                "name": "1st Vanguard Brigade", "faction": "NATO", "personnel": 5000, "lon": 65.0, "lat": 35.0,
-                "unit_type": "ARMY", "equipment_level": 3.0, "primary_weapon": "M4", "stance": "DEFENSIVE", "composition": {"inf": 3, "arm": 1}
-            }
+            "unit_001": { "name": "1st Brigade", "faction": "NATO", "icon": "⚡", "personnel": 5000, "lon": 65.0, "lat": 35.0, "unit_type": "ARMY", "equipment_level": 3.0, "primary_weapon": "AK-74", "stance": "DEFENSIVE", "composition": {"inf": 3, "arm": 1} }
         },
         battalions: {
             "inf": { "name": "Infantry", "speed": 15, "soft": 45, "hard": 10, "armor": 0, "defense": 60, "org": 60, "terrain": 0.8 },
             "arm": { "name": "Armor", "speed": 25, "soft": 35, "hard": 60, "armor": 200, "defense": 20, "org": 20, "terrain": 0.3 }
         },
         weapons: {
-            "M4": { "name": "Standard 5.56mm", "range": 0.6 },
+            "AK-74": { "name": "Standard Arms", "range": 0.5 },
             "Howitzer": { "name": "155mm Artillery", "range": 30.0 }
         }
     };
 
     let currentTab = 'scenario';
-    let selectedItemId = null; // Used for lists (units, weapons, etc)
+    let selectedItemId = null; 
 
     // ==========================================
-    // 2. VIEW CONTROLLER
+    // 3. VIEW CONTROLLER | 视图控制器
     // ==========================================
+    
+    /**
+     * Switches the active editor tab.
+     * 切换当前激活的编辑器选项卡。
+     * @param {string} tabId - Target tab identifier | 目标选项卡标识符
+     */
     function switchTab(tabId) {
         currentTab = tabId;
         selectedItemId = null;
@@ -122,77 +201,61 @@
         renderView();
     }
 
+    /**
+     * Triggers the rendering pipeline based on the current active tab.
+     * 根据当前激活的选项卡触发渲染管线。
+     */
     function renderView() {
         const container = document.getElementById('main-editor');
-        container.innerHTML = ''; // Clear
+        container.innerHTML = ''; 
         
         if (currentTab === 'scenario') {
             container.innerHTML = renderScenarioForm();
-        } else if (currentTab === 'units') {
-            container.innerHTML = renderMasterDetail('units', 'Add Unit');
-            renderUnitDetail();
-        } else if (currentTab === 'battalions') {
-            container.innerHTML = renderMasterDetail('battalions', 'Add Battalion');
-            renderBattalionDetail();
-        } else if (currentTab === 'weapons') {
-            container.innerHTML = renderMasterDetail('weapons', 'Add Weapon');
-            renderWeaponDetail();
+        } else {
+            container.innerHTML = renderMasterDetail(currentTab);
+            if (currentTab === 'units') renderUnitDetail();
+            else if (currentTab === 'battalions') renderBattalionDetail();
+            else if (currentTab === 'weapons') renderWeaponDetail();
         }
     }
 
     // ==========================================
-    // 3. RENDERERS (GUI Engine)
+    // 4. RENDERING ENGINE | 渲染引擎
     // ==========================================
     
-    // --- SCENARIO FORM ---
     function renderScenarioForm() {
         const s = db.scenario;
         const b = s.map_config.bounds;
         return `
             <div class="detail-pane">
                 <div class="form-section">
-                    <div class="section-title">General Briefing</div>
+                    <div class="section-title">${t('scen_info')}</div>
                     <div class="form-grid">
-                        <div class="form-group full">
-                            <label>Scenario Name</label>
-                            <input type="text" value="${s.scenario_name}" onchange="db.scenario.scenario_name = this.value">
-                        </div>
-                        <div class="form-group full">
-                            <label>Description</label>
-                            <input type="text" value="${s.description}" onchange="db.scenario.description = this.value">
-                        </div>
+                        <div class="form-group full"><label>${t('scen_name')}</label><input type="text" value="${s.scenario_name}" onchange="db.scenario.scenario_name = this.value"></div>
+                        <div class="form-group full"><label>${t('scen_desc')}</label><input type="text" value="${s.description}" onchange="db.scenario.description = this.value"></div>
                     </div>
                 </div>
                 <div class="form-section">
-                    <div class="section-title">Map Boundaries (Coordinates)</div>
+                    <div class="section-title">${t('scen_bounds')}</div>
                     <div class="form-grid">
-                        <div class="form-group"><label>Min Longitude (West)</label><input type="number" step="0.1" value="${b.min_lon}" onchange="db.scenario.map_config.bounds.min_lon = parseFloat(this.value)"></div>
-                        <div class="form-group"><label>Max Longitude (East)</label><input type="number" step="0.1" value="${b.max_lon}" onchange="db.scenario.map_config.bounds.max_lon = parseFloat(this.value)"></div>
-                        <div class="form-group"><label>Min Latitude (South)</label><input type="number" step="0.1" value="${b.min_lat}" onchange="db.scenario.map_config.bounds.min_lat = parseFloat(this.value)"></div>
-                        <div class="form-group"><label>Max Latitude (North)</label><input type="number" step="0.1" value="${b.max_lat}" onchange="db.scenario.map_config.bounds.max_lat = parseFloat(this.value)"></div>
-                    </div>
-                </div>
-                <div class="form-section">
-                    <div class="section-title">File Paths (Relative to DLC folder)</div>
-                    <div class="form-grid">
-                        <div class="form-group"><label>Elevation Matrix Folder (DEM)</label><input type="text" value="${s.map_config.dem_dir}" onchange="db.scenario.map_config.dem_dir = this.value"></div>
-                        <div class="form-group"><label>Road Network (.tif/.geojson)</label><input type="text" value="${s.map_config.roads_file}" onchange="db.scenario.map_config.roads_file = this.value"></div>
-                        <div class="form-group"><label>Administrative Borders (.geojson)</label><input type="text" value="${s.map_config.provinces_file}" onchange="db.scenario.map_config.provinces_file = this.value"></div>
+                        <div class="form-group"><label>${t('lon_min')}</label><input type="number" step="0.1" value="${b.min_lon}" onchange="db.scenario.map_config.bounds.min_lon = parseFloat(this.value)"></div>
+                        <div class="form-group"><label>${t('lon_max')}</label><input type="number" step="0.1" value="${b.max_lon}" onchange="db.scenario.map_config.bounds.max_lon = parseFloat(this.value)"></div>
+                        <div class="form-group"><label>${t('lat_min')}</label><input type="number" step="0.1" value="${b.min_lat}" onchange="db.scenario.map_config.bounds.min_lat = parseFloat(this.value)"></div>
+                        <div class="form-group"><label>${t('lat_max')}</label><input type="number" step="0.1" value="${b.max_lat}" onchange="db.scenario.map_config.bounds.max_lat = parseFloat(this.value)"></div>
                     </div>
                 </div>
             </div>
         `;
     }
 
-    // --- MASTER LIST LAYOUT ---
-    function renderMasterDetail(collectionKey, addBtnText) {
+    function renderMasterDetail(collectionKey) {
         let listHtml = '';
         for (const [id, item] of Object.entries(db[collectionKey])) {
             const isSelected = id === selectedItemId ? 'selected' : '';
-            const sub = item.faction || item.range || item.speed || '';
+            const sub = item.faction || (item.range ? `R: ${item.range}km` : '') || (item.speed ? `V: ${item.speed}km/h` : '');
             listHtml += `
                 <div class="list-item ${isSelected}" onclick="selectItem('${collectionKey}', '${id}')">
-                    <div class="item-title">${item.name || id}</div>
+                    <div class="item-title">${item.icon ? item.icon + ' ' : ''}${item.name || id}</div>
                     <div class="item-sub">${id} | ${sub}</div>
                 </div>
             `;
@@ -201,23 +264,31 @@
         return `
             <div class="master-list">
                 <div class="list-header">
-                    <span style="font-weight:bold; color:#c9d1d9;">Entries</span>
-                    <button class="gui-btn" style="padding: 4px 8px; font-size:12px;" onclick="createNewItem('${collectionKey}')">${addBtnText}</button>
+                    <span style="font-weight:bold; color:#c9d1d9;">${t('list_title')}</span>
+                    <button class="gui-btn" style="padding: 4px 8px; font-size:12px;" onclick="createNewItem('${collectionKey}')">${t('btn_add')}</button>
                 </div>
-                <div class="list-items" id="master-list-container">${listHtml}</div>
+                <div class="list-items">${listHtml}</div>
             </div>
             <div class="detail-pane" id="detail-container"></div>
         `;
     }
 
+    /**
+     * Handles item selection in the master list.
+     * 处理主列表中的条目选择事件。
+     */
     function selectItem(collectionKey, id) {
         selectedItemId = id;
-        renderView(); // Re-render to update highlights and form
+        renderView();
     }
 
+    /**
+     * Instantiates a new default record based on the active collection.
+     * 基于当前激活的集合实例化一条默认的新记录。
+     */
     function createNewItem(collectionKey) {
-        const newId = `new_item_${Date.now().toString().slice(-4)}`;
-        if (collectionKey === 'units') db.units[newId] = { name: "New Unit", faction: "UNKNOWN", personnel: 1000, lon: 0, lat: 0, unit_type: "ARMY", equipment_level: 1, composition: {"inf":1}, primary_weapon: "None", stance: "AGGRESSIVE" };
+        const newId = `id_${Date.now().toString().slice(-4)}`;
+        if (collectionKey === 'units') db.units[newId] = { name: "New Unit", faction: "UNKNOWN", icon: "🪖", personnel: 1000, lon: 0, lat: 0, unit_type: "ARMY", equipment_level: 1, composition: {"inf":1}, primary_weapon: "AK-74", stance: "AGGRESSIVE" };
         if (collectionKey === 'weapons') db.weapons[newId] = { name: "New Weapon", range: 1.0 };
         if (collectionKey === 'battalions') db.battalions[newId] = { name: "New Battalion", speed: 10, soft: 10, hard: 10, armor: 0, defense: 10, org: 50, terrain: 1.0 };
         
@@ -225,10 +296,9 @@
         renderView();
     }
 
-    // --- UNIT DETAIL FORM ---
     function renderUnitDetail() {
         const container = document.getElementById('detail-container');
-        if (!selectedItemId) { container.innerHTML = `<div class="empty-state">Select a unit from the list to edit.</div>`; return; }
+        if (!selectedItemId) { container.innerHTML = `<div class="empty-state">${t('empty_state')}</div>`; return; }
         
         const u = db.units[selectedItemId];
         const updateObj = `db.units['${selectedItemId}']`;
@@ -238,55 +308,44 @@
 
         container.innerHTML = `
             <div class="form-section">
-                <div style="display:flex; justify-content:space-between;">
-                    <div class="section-title">Unit Identity</div>
-                    <button class="gui-btn danger" onclick="deleteItem('units', '${selectedItemId}')">🗑️ Delete</button>
-                </div>
+                <div style="display:flex; justify-content:space-between;"><div class="section-title">${t('unit_id')}</div><button class="gui-btn danger" onclick="deleteItem('units', '${selectedItemId}')">${t('del')}</button></div>
                 <div class="form-grid">
-                    <div class="form-group"><label>Unit ID (Internal)</label><input type="text" value="${selectedItemId}" readonly style="opacity:0.5;"></div>
-                    <div class="form-group"><label>Display Name</label><input type="text" value="${u.name}" onchange="${updateObj}.name = this.value; renderView();"></div>
-                    <div class="form-group"><label>Faction</label><input type="text" value="${u.faction}" onchange="${updateObj}.faction = this.value; renderView();"></div>
-                    <div class="form-group"><label>Unit Type</label>
+                    <div class="form-group"><label>${t('uid')}</label><input type="text" value="${selectedItemId}" readonly style="opacity:0.5;"></div>
+                    <div class="form-group"><label>${t('uname')}</label><input type="text" value="${u.name}" onchange="${updateObj}.name = this.value; renderView();"></div>
+                    <div class="form-group"><label>${t('ufac')}</label><input type="text" value="${u.faction}" onchange="${updateObj}.faction = this.value; renderView();"></div>
+                    <div class="form-group"><label>${t('uicon')}</label><input type="text" value="${u.icon || ''}" placeholder="e.g., 🚁, 💀, ⚓" onchange="${updateObj}.icon = this.value; renderView();"></div>
+                    <div class="form-group"><label>${t('utype')}</label>
                         <select onchange="${updateObj}.unit_type = this.value">
-                            <option value="ARMY" ${u.unit_type==='ARMY'?'selected':''}>ARMY (Ground Force)</option>
-                            <option value="AIR_FORCE" ${u.unit_type==='AIR_FORCE'?'selected':''}>AIR_FORCE (Aviation)</option>
-                            <option value="ARTILLERY" ${u.unit_type==='ARTILLERY'?'selected':''}>ARTILLERY (Fire Support)</option>
+                            <option value="ARMY" ${u.unit_type==='ARMY'?'selected':''}>ARMY</option><option value="AIR_FORCE" ${u.unit_type==='AIR_FORCE'?'selected':''}>AIR_FORCE</option><option value="ARTILLERY" ${u.unit_type==='ARTILLERY'?'selected':''}>ARTILLERY</option>
                         </select>
                     </div>
                 </div>
             </div>
             <div class="form-section">
-                <div class="section-title">Deployment & Posture</div>
+                <div class="section-title">${t('upos')}</div>
                 <div class="form-grid">
-                    <div class="form-group"><label>Initial Longitude</label><input type="number" step="0.001" value="${u.lon}" onchange="${updateObj}.lon = parseFloat(this.value)"></div>
-                    <div class="form-group"><label>Initial Latitude</label><input type="number" step="0.001" value="${u.lat}" onchange="${updateObj}.lat = parseFloat(this.value)"></div>
-                    <div class="form-group"><label>Default Stance</label>
+                    <div class="form-group"><label>${t('ulon')}</label><input type="number" step="0.001" value="${u.lon}" onchange="${updateObj}.lon = parseFloat(this.value)"></div>
+                    <div class="form-group"><label>${t('ulat')}</label><input type="number" step="0.001" value="${u.lat}" onchange="${updateObj}.lat = parseFloat(this.value)"></div>
+                    <div class="form-group"><label>${t('ustance')}</label>
                         <select onchange="${updateObj}.stance = this.value">
-                            <option value="AGGRESSIVE" ${u.stance==='AGGRESSIVE'?'selected':''}>AGGRESSIVE</option>
-                            <option value="DEFENSIVE" ${u.stance==='DEFENSIVE'?'selected':''}>DEFENSIVE</option>
-                            <option value="STEALTH" ${u.stance==='STEALTH'?'selected':''}>STEALTH (Guerrilla)</option>
+                            <option value="AGGRESSIVE" ${u.stance==='AGGRESSIVE'?'selected':''}>AGGRESSIVE</option><option value="DEFENSIVE" ${u.stance==='DEFENSIVE'?'selected':''}>DEFENSIVE</option><option value="STEALTH" ${u.stance==='STEALTH'?'selected':''}>STEALTH</option>
                         </select>
                     </div>
-                    <div class="form-group"><label>Primary Weapon</label><select onchange="${updateObj}.primary_weapon = this.value">${weaponOptions}</select></div>
+                    <div class="form-group"><label>${t('uwea')}</label><select onchange="${updateObj}.primary_weapon = this.value">${weaponOptions}</select></div>
                 </div>
             </div>
             <div class="form-section">
-                <div class="section-title">Order of Battle (Composition)</div>
-                <p style="font-size:12px; color:#8b949e; margin-top:-5px;">Enter the number of battalions. Base stats will be calculated dynamically.</p>
-                <div class="form-grid" id="comp-editor-grid">
-                    </div>
+                <div class="section-title">${t('ucomp')}</div>
+                <p style="font-size:12px; color:#8b949e; margin-top:-5px;">${t('ucomp_sub')}</p>
+                <div class="form-grid" id="comp-editor-grid"></div>
             </div>
         `;
 
-        // Render dynamic composition inputs
         const compGrid = document.getElementById('comp-editor-grid');
         for (const bId of Object.keys(db.battalions)) {
             const currentCount = u.composition[bId] || 0;
             compGrid.innerHTML += `
-                <div class="form-group">
-                    <label>${db.battalions[bId].name} (${bId})</label>
-                    <input type="number" min="0" value="${currentCount}" onchange="updateComposition('${selectedItemId}', '${bId}', parseInt(this.value))">
-                </div>
+                <div class="form-group"><label>${db.battalions[bId].name} (${bId})</label><input type="number" min="0" value="${currentCount}" onchange="updateComposition('${selectedItemId}', '${bId}', parseInt(this.value))"></div>
             `;
         }
     }
@@ -297,47 +356,49 @@
         else delete db.units[unitId].composition[batId];
     }
 
-    // --- WEAPON DETAIL FORM ---
     function renderWeaponDetail() {
         const container = document.getElementById('detail-container');
-        if (!selectedItemId) { container.innerHTML = `<div class="empty-state">Select a weapon to edit.</div>`; return; }
+        if (!selectedItemId) { container.innerHTML = `<div class="empty-state">${t('empty_state')}</div>`; return; }
         const w = db.weapons[selectedItemId];
         container.innerHTML = `
             <div class="form-section">
-                <div style="display:flex; justify-content:space-between;"><div class="section-title">Weapon Parameters</div><button class="gui-btn danger" onclick="deleteItem('weapons', '${selectedItemId}')">🗑️ Delete</button></div>
+                <div style="display:flex; justify-content:space-between;"><div class="section-title">${t('wea_param')}</div><button class="gui-btn danger" onclick="deleteItem('weapons', '${selectedItemId}')">${t('del')}</button></div>
                 <div class="form-grid">
-                    <div class="form-group full"><label>Display Name</label><input type="text" value="${w.name}" onchange="db.weapons['${selectedItemId}'].name = this.value; renderView();"></div>
-                    <div class="form-group"><label>Effective Range (km)</label><input type="number" step="0.1" value="${w.range}" onchange="db.weapons['${selectedItemId}'].range = parseFloat(this.value)"></div>
+                    <div class="form-group full"><label>${t('wea_name')}</label><input type="text" value="${w.name}" onchange="db.weapons['${selectedItemId}'].name = this.value; renderView();"></div>
+                    <div class="form-group"><label>${t('wea_range')}</label><input type="number" step="0.1" value="${w.range}" onchange="db.weapons['${selectedItemId}'].range = parseFloat(this.value)"></div>
                 </div>
             </div>
         `;
     }
 
-    // --- BATTALION DETAIL FORM ---
     function renderBattalionDetail() {
         const container = document.getElementById('detail-container');
-        if (!selectedItemId) { container.innerHTML = `<div class="empty-state">Select a battalion type to edit.</div>`; return; }
+        if (!selectedItemId) { container.innerHTML = `<div class="empty-state">${t('empty_state')}</div>`; return; }
         const b = db.battalions[selectedItemId];
         const updateObj = `db.battalions['${selectedItemId}']`;
         container.innerHTML = `
             <div class="form-section">
-                <div style="display:flex; justify-content:space-between;"><div class="section-title">Battalion Physics & Stats</div><button class="gui-btn danger" onclick="deleteItem('battalions', '${selectedItemId}')">🗑️ Delete</button></div>
+                <div style="display:flex; justify-content:space-between;"><div class="section-title">${t('bat_stat')}</div><button class="gui-btn danger" onclick="deleteItem('battalions', '${selectedItemId}')">${t('del')}</button></div>
                 <div class="form-grid">
-                    <div class="form-group full"><label>Display Name</label><input type="text" value="${b.name}" onchange="${updateObj}.name = this.value; renderView();"></div>
-                    <div class="form-group"><label>Base Speed (km/h)</label><input type="number" value="${b.speed}" onchange="${updateObj}.speed = parseFloat(this.value)"></div>
-                    <div class="form-group"><label>Terrain Efficiency</label><input type="number" step="0.1" value="${b.terrain || 1.0}" onchange="${updateObj}.terrain = parseFloat(this.value)"></div>
-                    <div class="form-group"><label>Soft Attack</label><input type="number" value="${b.soft}" onchange="${updateObj}.soft = parseFloat(this.value)"></div>
-                    <div class="form-group"><label>Hard Attack (Anti-Armor)</label><input type="number" value="${b.hard}" onchange="${updateObj}.hard = parseFloat(this.value)"></div>
-                    <div class="form-group"><label>Armor Thickness</label><input type="number" value="${b.armor}" onchange="${updateObj}.armor = parseFloat(this.value)"></div>
-                    <div class="form-group"><label>Defense</label><input type="number" value="${b.defense}" onchange="${updateObj}.defense = parseFloat(this.value)"></div>
-                    <div class="form-group"><label>Organization (Morale Base)</label><input type="number" value="${b.org}" onchange="${updateObj}.org = parseFloat(this.value)"></div>
+                    <div class="form-group full"><label>${t('bat_name')}</label><input type="text" value="${b.name}" onchange="${updateObj}.name = this.value; renderView();"></div>
+                    <div class="form-group"><label>${t('bat_spd')}</label><input type="number" value="${b.speed}" onchange="${updateObj}.speed = parseFloat(this.value)"></div>
+                    <div class="form-group"><label>${t('bat_ter')}</label><input type="number" step="0.1" value="${b.terrain || 1.0}" onchange="${updateObj}.terrain = parseFloat(this.value)"></div>
+                    <div class="form-group"><label>${t('bat_soft')}</label><input type="number" value="${b.soft}" onchange="${updateObj}.soft = parseFloat(this.value)"></div>
+                    <div class="form-group"><label>${t('bat_hard')}</label><input type="number" value="${b.hard}" onchange="${updateObj}.hard = parseFloat(this.value)"></div>
+                    <div class="form-group"><label>${t('bat_arm')}</label><input type="number" value="${b.armor}" onchange="${updateObj}.armor = parseFloat(this.value)"></div>
+                    <div class="form-group"><label>${t('bat_def')}</label><input type="number" value="${b.defense}" onchange="${updateObj}.defense = parseFloat(this.value)"></div>
+                    <div class="form-group"><label>${t('bat_org')}</label><input type="number" value="${b.org}" onchange="${updateObj}.org = parseFloat(this.value)"></div>
                 </div>
             </div>
         `;
     }
 
+    /**
+     * Deletes the currently selected item from the database.
+     * 从数据库中永久删除当前选中的条目。
+     */
     function deleteItem(collection, id) {
-        if (confirm("Delete this entry completely?")) {
+        if (confirm("Confirm deletion? / 确认删除？")) {
             delete db[collection][id];
             selectedItemId = null;
             renderView();
@@ -345,8 +406,13 @@
     }
 
     // ==========================================
-    // 4. EXPORT ENGINE (JSZip)
+    // 5. EXPORT ENGINE | 导出打包引擎
     // ==========================================
+    
+    /**
+     * Serializes the in-memory database and downloads a consolidated zip package.
+     * 序列化内存数据库并下载整合成的 zip 压缩包。
+     */
     function exportAll() {
         const zip = new JSZip();
         zip.file("scenario.json", JSON.stringify(db.scenario, null, 2));
@@ -357,13 +423,16 @@
         zip.generateAsync({type:"blob"}).then(function(content) {
             const a = document.createElement("a");
             a.href = URL.createObjectURL(content);
-            a.download = `cdc_dlc_${Date.now()}.zip`;
+            a.download = `cdc_dlc_config_${Date.now()}.zip`;
             a.click();
         });
     }
 
-    // Initialize
-    window.onload = renderView;
+    // Boot Initialization | 启动初始化
+    window.onload = () => {
+        updateStaticUI();
+        renderView();
+    };
 </script>
 </body>
 </html>

@@ -280,6 +280,7 @@ def edit_unit():
     udata = {
         "name": data.get("name", "Newly Formed Unit"), 
         "faction": data.get("faction", "Unknown"),
+        "icon": data.get("icon", ""),
         "personnel": float(data.get("personnel", 1000)), 
         "equipment_level": float(data.get("equipment_level", 1.0)),
         "lon": float(data.get("lon", 69.2)), 
@@ -317,6 +318,7 @@ def admin_edit():
     u.id = nid
     u.name = data.get("name", u.name)
     u.faction = data.get("faction", u.faction)
+    u.icon = data.get("icon", getattr(u, 'icon', ""))
     u.personnel = float(data.get("personnel", u.personnel))
     u.equipment_level = float(data.get("equipment_level", u.equipment_level))
     u.lon = float(data.get("lon", u.lon))
