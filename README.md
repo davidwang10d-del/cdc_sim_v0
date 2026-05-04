@@ -3,6 +3,7 @@ dedicated for Model united nation milsim
 contact at davidwang.10d@gmail.com for further update advice and cooperation
 
 CDC Sim v0 is a military-grade, Python-based Geographic Information System (GIS) wargame and simulation engine designed for tactical and strategic maneuver analysis.
+Highly customized, create your own dlc to simulate, the afghan folder in dlc is for demonstrate and test purpose only
 
 ---
 
